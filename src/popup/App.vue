@@ -53,7 +53,7 @@
             {{ el.f4 }}&nbsp;&nbsp;{{ el.f3 }}%
           </p>
         </div>
-        <div v-if="isEdit && indFundData.length < 4" class="tab-col">
+        <div v-if="isEdit && indFundData.length < 6" class="tab-col">
           <div
             v-if="!showAddSeciInput"
             class="addSeci"
@@ -132,7 +132,7 @@
           darkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)'
         "
         class="table-row"
-        style="min-height:160px"
+        style="min-height:160px; max-height:290px"
       >
         <table :class="tableHeight">
           <thead>
@@ -173,6 +173,26 @@
               <th @click="sortList('gains')" v-if="showGains" class="pointer">
                 估算收益
                 <span :class="sortType.gains" class="down-arrow"></span>
+              </th>
+              <th @click="sortList('t_1')" v-if="!isEdit" class="pointer" >
+                T-1
+                <span :class="sortType.t_1" class="down-arrow"></span>
+              </th>
+              <th @click="sortList('t_2')" v-if="!isEdit" class="pointer" >
+                T-2
+                <span :class="sortType.t_2" class="down-arrow"></span>
+              </th>
+              <th @click="sortList('t_3')" v-if="!isEdit" class="pointer" >
+                T-3
+                <span :class="sortType.t_3" class="down-arrow"></span>
+              </th>
+              <th @click="sortList('t_7')" v-if="!isEdit" class="pointer" >
+                T-7
+                <span :class="sortType.t_7" class="down-arrow"></span>
+              </th>
+              <th @click="sortList('t_30')" v-if="!isEdit" class="pointer" >
+                T-30
+                <span :class="sortType.t_30" class="down-arrow"></span>
               </th>
               <th v-if="!isEdit">更新时间</th>
               <th
@@ -248,6 +268,11 @@
                   })
                 }}
               </td>
+              <td v-if="!isEdit" :class="el.t_1 >= 0 ? 'up' : 'down'"> {{ el.t_1 }}% </td>
+              <td v-if="!isEdit" :class="el.t_2 >= 0 ? 'up' : 'down'"> {{ el.t_2 }}% </td>
+              <td v-if="!isEdit" :class="el.t_3 >= 0 ? 'up' : 'down'"> {{ el.t_3 }}% </td>
+              <td v-if="!isEdit" :class="el.t_7 >= 0 ? 'up' : 'down'"> {{ el.t_7 }}% </td>
+              <td v-if="!isEdit" :class="el.t_30 >= 0 ? 'up' : 'down'"> {{el.t_30 }}% </td>
               <td v-if="!isEdit">
                 {{
                   el.hasReplace ? el.gztime.substr(5, 5) : el.gztime.substr(10)
@@ -406,13 +431,13 @@
         @click="isEdit = !isEdit"
       />
       <input class="btn" type="button" value="设置" @click="option" />
-      <input class="btn" type="button" value="日志" @click="changelog" />
+      <!-- <input class="btn" type="button" value="日志" @click="changelog" /> -->
       <input
         class="btn primary"
         type="button"
-        title="φ(>ω<*)"
-        value="打赏"
-        @click="reward"
+        title="功能待开发"
+        value="切换场内"
+        @click="rewardShadow = false"
       />
     </div>
     <div class="input-row" v-if="showCost || showGains">
@@ -472,22 +497,22 @@
       :darkMode="darkMode"
       ref="fundDetail"
     ></fund-detail>
-    <reward @close="rewardShadow = false" ref="reward"></reward>
-    <change-log
+    <!-- <reward @close="rewardShadow = false" ref="reward"></reward> -->
+    <!-- <change-log
       @close="closeChangelog"
       :darkMode="darkMode"
       ref="changelog"
       :top="30"
-    ></change-log>
+    ></change-log> -->
   </div>
 </template>
 
 <script>
 const { version } = require("../../package.json");
-import reward from "../common/reward";
+// import reward from "../common/reward";
 import indDetail from "../common/indDetail";
 import fundDetail from "../common/fundDetail";
-import changeLog from "../common/changeLog";
+// import changeLog from "../common/changeLog";
 import market from "../common/market";
 //防抖
 let timeout = null;
@@ -498,10 +523,10 @@ function debounce(fn, wait = 700) {
 
 export default {
   components: {
-    reward,
+    // reward,
     fundDetail,
     indDetail,
-    changeLog,
+    // changeLog,
     market,
   },
   data() {
@@ -516,6 +541,7 @@ export default {
       RealtimeIndcode: null,
       dataList: [],
       dataListDft: [],
+      historyList: [],
       myVar: null,
       myVar1: null,
       rewardShadow: false,
@@ -525,7 +551,7 @@ export default {
       showCost: false,
       showCostRate: false,
       showGSZ: false,
-      fundList: ["001618"],
+      fundList: ["510510"],
       fundListM: [],
       sortType: {
         gszzl: "none",
@@ -533,6 +559,11 @@ export default {
         gains: "none",
         costGains: "none",
         costGainsRate: "none",
+        t_1: "none",
+        t_2: "none",
+        t_3: "none",
+        t_7: "none",
+        t_30: "none",
       },
       sortTypeObj: {
         name: null,
@@ -544,7 +575,7 @@ export default {
       loading: false,
       dragging: null,
       showAddSeciInput: false,
-      seciList: ["1.000001", "1.000300", "0.399001", "0.399006"],
+      seciList: ["1.000001", "0.399001", "0.399006","100.HSI","100.GDAXI","100.DJIA"],
       allSeciList: [
         {
           value: "1.000001",
@@ -559,20 +590,28 @@ export default {
           label: "深证成指",
         },
         {
-          value: "1.000688",
-          label: "科创50",
-        },
-        {
           value: "0.399006",
           label: "创业板指",
+        },
+        {
+          value: "1.000688",
+          label: "科创50",
         },
         {
           value: "0.399005",
           label: "中小板指",
         },
         {
+          value: "1.000905",
+          label: "中证500",
+        },
+        {
           value: "100.HSI",
           label: "恒生指数",
+        },
+        {
+          value: "100.GDAXI",
+          label: "德国DAX",
         },
         {
           value: "100.DJIA",
@@ -585,7 +624,7 @@ export default {
         {
           value: "100.SPX",
           label: "标普500",
-        },
+        }
       ],
       sltSeci: "",
       darkMode: false,
@@ -720,6 +759,36 @@ export default {
     },
   },
   methods: {
+    getT_1(history) {
+      if(history) {
+        return history[history.length - 1].JZZZL;
+      } 
+      return '----';
+    },
+    getT_2(history) {
+      if(history) {
+        return  ((history[history.length - 1].DWJZ - history[history.length - 3].DWJZ) / history[history.length - 3].DWJZ * 100 ).toFixed(2); 
+      } 
+      return '----';
+    },
+    getT_3(history) {
+      if(history) {
+        return  ((history[history.length - 1].DWJZ - history[history.length - 4].DWJZ) / history[history.length - 4].DWJZ * 100 ).toFixed(2); 
+      } 
+      return '----';
+    },
+    getT_7(history) {
+      if(history) {
+        return  ((history[history.length - 1].DWJZ - history[history.length - 6].DWJZ) / history[history.length - 6].DWJZ * 100 ).toFixed(2); 
+      } 
+      return '----';
+    },
+    getT_30(history) {
+      if(history) {
+        return  ((history[history.length - 1].DWJZ - history[0].DWJZ) / history[0].DWJZ * 100 ).toFixed(2); 
+      } 
+      return '----';
+    },
     refresh() {
       this.init();
       this.isRefresh = true;
@@ -827,10 +896,10 @@ export default {
           this.getData();
           this.checkInterval(true);
 
-          let ver = res.version ? res.version : "1.0.0";
-          if (ver != this.localVersion) {
-            this.changelog();
-          }
+          // let ver = res.version ? res.version : "1.0.0";
+          // if (ver != this.localVersion) {
+          //   this.changelog();
+          // }
         }
       );
     },
@@ -919,10 +988,10 @@ export default {
       this.rewardShadow = true;
       this.$refs.reward.init();
     },
-    changelog() {
-      this.changelogShadow = true;
-      this.$refs.changelog.init();
-    },
+    // changelog() {
+    //   this.changelogShadow = true;
+    //   this.$refs.changelog.init();
+    // },
     closeChangelog() {
       this.changelogShadow = false;
       chrome.storage.sync.set({
@@ -1051,6 +1120,23 @@ export default {
               data.gszzl = isNaN(val.NAVCHGRT) ? 0 : val.NAVCHGRT;
               data.hasReplace = true;
             }
+            let history = this.historyList.find(o=>o.fundcode == val.FCODE);
+            if(!history) {
+              this.getHistory(val.FCODE)
+              // data.history = null;
+              data.t_1 = null;
+              data.t_2 = null;
+              data.t_3 = null;
+              data.t_7 = null;
+              data.t_30 = null;
+            } else {
+              data.history = history.data;
+              data.t_1 = this.getT_1(history.data);
+              data.t_2 = this.getT_2(history.data);
+              data.t_3 = this.getT_3(history.data);
+              data.t_7 = this.getT_7(history.data);
+              data.t_30 = this.getT_30(history.data);
+            }
 
             let slt = this.fundListM.filter(
               (item) => item.code == data.fundcode
@@ -1097,6 +1183,21 @@ export default {
           }
         })
         .catch((error) => {});
+    },
+    getHistory(fundcode) {
+      let url = `https://fundmobapi.eastmoney.com/FundMApi/FundNetDiagram.ashx?FCODE=${
+        fundcode
+      }&RANGE=y&deviceid=Wap&plat=Wap&product=EFund&version=2.0.0&_=${new Date().getTime()}`;
+      this.$axios.get(url).then((res) => {
+        this.historyList.push({fundcode, data: res.data.Datas})
+        let data = this.dataList.find(o=>o.fundcode == fundcode);
+        data.history = res.data.Datas;
+        data.t_1 = this.getT_1(res.data.Datas);
+        data.t_2 = this.getT_2(res.data.Datas);
+        data.t_3 = this.getT_3(res.data.Datas);
+        data.t_7 = this.getT_7(res.data.Datas);
+        data.t_30 = this.getT_30(res.data.Datas);
+      })
     },
     changeNum(item, ind) {
       debounce(() => {
@@ -1410,25 +1511,28 @@ export default {
 
 .container {
   &.num-width-1 {
-    min-width: 420px;
+    min-width: 650px;
   }
   &.num-width-2 {
-    min-width: 480px;
+    min-width: 720px;
   }
   &.num-width-3 {
-    min-width: 540px;
+    min-width: 790px;
   }
   &.num-width-4 {
-    min-width: 610px;
+    min-width: 860px;
   }
   &.num-width-5 {
-    min-width: 680px;
+    min-width: 950px;
   }
 }
 
 .table-row {
   max-height: 425px;
   overflow-y: auto;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .hasReplace {
