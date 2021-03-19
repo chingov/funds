@@ -22,14 +22,14 @@
             ref="second"
           ></charts2>
         </el-tab-pane>
-        <el-tab-pane lazy label="累计收益" name="third">
+        <!-- <el-tab-pane lazy label="累计收益" name="third">
           <charts2
             :darkMode="darkMode"
             :fund="fund"
             chartType="LJSY"
             ref="third"
           ></charts2>
-        </el-tab-pane>
+        </el-tab-pane> -->
         <el-tab-pane lazy label="基金概况" name="info">
           <fund-info
             :darkMode="darkMode"

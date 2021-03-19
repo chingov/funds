@@ -130,7 +130,7 @@
               class="exportBtn"
               ref="configMsg"
               :href="configHref"
-              download="自选基金助手配置文件.json"
+              download="钱多多养鸡场配置文件.json"
             ></a>
             <a href="javascript:;" class="uploadFile btn"
               >导入配置文件

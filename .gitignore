@@ -106,3 +106,5 @@ dist-zip
 dev.md
 src/popup/App copy.vue
 .DS_Store
+.idea/
+src/.DS_Store
