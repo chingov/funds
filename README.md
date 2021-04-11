@@ -50,4 +50,4 @@
 
 ## 协议许可
 
-在 MIT 许可下可用。 有关更多信息，请参见LICENSE文件。
+在 [GPL-3.0 License](https://github.com/chingov/funds/blob/master/LICENSE) 许可下可用。 有关更多信息，请参见LICENSE文件。
